@@ -15,7 +15,20 @@ if errorlevel 1 (
 %PY% -c "import PIL" >nul 2>nul
 if errorlevel 1 (
   echo Instalando a biblioteca Pillow, so na primeira vez...
-  %PY% -m pip install pillow
+  if exist wheels (
+    %PY% -m pip install --no-index --find-links wheels pillow
+  ) else (
+    %PY% -m pip install pillow
+  )
+)
+
+%PY% -c "import PIL" >nul 2>nul
+if errorlevel 1 (
+  echo.
+  echo Nao consegui instalar o Pillow.
+  echo Se o PC estiver sem internet, copie a pasta "wheels" para junto deste arquivo e abra de novo.
+  pause
+  exit /b 1
 )
 
 %PY% controle_pc.py

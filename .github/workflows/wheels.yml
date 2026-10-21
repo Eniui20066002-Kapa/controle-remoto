@@ -1,0 +1,40 @@
+name: Baixar Pillow para instalar sem internet
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wheels.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  wheels:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Baixar o Pillow (Windows, varias versoes de Python)
+        shell: bash
+        run: |
+          mkdir -p pc/wheels
+          for plat in win_amd64 win32; do
+            for v in 3.8 3.9 3.10 3.11 3.12 3.13 3.14 3.15; do
+              pip download pillow --only-binary=:all: --no-deps \
+                --platform $plat --python-version $v -d pc/wheels -q \
+                || echo "sem pacote para $plat python $v"
+            done
+          done
+          ls -la pc/wheels
+          du -sh pc/wheels
+
+      - name: Guardar no repositorio
+        shell: bash
+        run: |
+          git config user.name "build-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add pc/wheels
+          git diff --cached --quiet && echo "nada novo" && exit 0
+          git commit -q -m "Pillow para Windows (instalacao sem internet)"
+          git push
